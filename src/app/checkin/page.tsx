@@ -146,10 +146,29 @@ export default function CheckInPage() {
 
   const stopScanner = async () => {
     try {
-      await scannerRef.current?.stop();
+      if (scannerRef.current) {
+        await scannerRef.current.stop();
+        scannerRef.current.clear();
+      }
     } catch { /* ignora */ }
     setScannerActive(false);
   };
+
+  // Parar câmera imediatamente ao sair da aba Portaria
+  useEffect(() => {
+    if (activeTab !== "portaria" && scannerActive) {
+      stopScanner();
+    }
+  }, [activeTab, scannerActive]);
+
+  // Limpeza caso o componente inteiro desmonte
+  useEffect(() => {
+    return () => {
+      if (scannerRef.current) {
+        try { scannerRef.current.stop(); } catch {}
+      }
+    };
+  }, []);
 
   // ── Lógica de Processamento ────────────────────────────────────────────────
   const handleScan = (raw: string) => {
