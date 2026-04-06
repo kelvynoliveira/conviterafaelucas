@@ -139,48 +139,69 @@ const html = `<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rafaela & Lucas — Disparo de Convites</title>
+  <title>Painel de Disparo — Rafaela & Lucas</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: system-ui, sans-serif; background: #0f1a0a; color: #d4e6b0; padding: 24px; }
-    h1 { color: #a8c070; font-size: 1.4rem; margin-bottom: 4px; }
-    p.sub { color: #636d4a; font-size: 0.8rem; margin-bottom: 24px; }
-    .stats { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
-    .stat { background: #1a2e0f; border: 1px solid #3b5110; border-radius: 12px; padding: 12px 20px; text-align: center; }
-    .stat strong { display: block; font-size: 1.5rem; color: #a8c070; }
-    .stat span { font-size: 0.7rem; color: #636d4a; text-transform: uppercase; letter-spacing: 0.05em; }
-    table { width: 100%; border-collapse: collapse; background: #1a2e0f; border-radius: 16px; overflow: hidden; }
-    th { background: #233d12; color: #a8c070; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; padding: 14px 16px; text-align: left; }
-    td { padding: 12px 16px; border-bottom: 1px solid rgba(59,81,16,0.2); font-size: 0.9rem; color: #d4e6b0; }
+    body { font-family: 'Inter', system-ui, sans-serif; background: #09090b; color: #f4f4f5; padding: 32px 24px; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 1000px; margin: 0 auto; }
+    
+    .header { margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    h1 { color: #f4f4f5; font-size: 1.5rem; font-weight: 600; margin-bottom: 8px; letter-spacing: -0.02em; display: flex; align-items: center; gap: 8px; }
+    p.sub { color: #a1a1aa; font-size: 0.85rem; }
+    
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 32px; }
+    .stat { background: #18181b; border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 20px; box-shadow: 0 4px 24px -8px rgba(0,0,0,0.5); }
+    .stat strong { display: block; font-size: 2rem; color: #f4f4f5; font-weight: 600; line-height: 1; margin-bottom: 4px; }
+    .stat span { font-size: 0.75rem; color: #a1a1aa; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 500; }
+    
+    .table-container { background: #18181b; border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px -8px rgba(0,0,0,0.5); }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th { background: rgba(255,255,255,0.02); color: #a1a1aa; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    td { padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,0.03); font-size: 0.9rem; color: #e4e4e7; transition: background 0.2s; }
     tr:last-child td { border-bottom: none; }
-    tr:hover td { background: #233d12; }
-    .wa-btn { display: inline-flex; align-items: center; gap: 8px; background: #25D366; color: white; text-decoration: none; padding: 8px 16px; border-radius: 999px; font-size: 0.8rem; font-weight: 600; transition: background 0.2s; white-space: nowrap; }
-    .wa-btn:hover { background: #1ebe5d; }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+    
+    .wa-btn { display: inline-flex; align-items: center; gap: 8px; background: #10b981; color: #022c22; text-decoration: none; padding: 8px 16px; border-radius: 999px; font-size: 0.8rem; font-weight: 600; transition: all 0.2s; white-space: nowrap; box-shadow: 0 2px 10px -2px rgba(16,185,129,0.3); }
+    .wa-btn:hover { background: #34d399; transform: translateY(-1px); box-shadow: 0 4px 12px -2px rgba(16,185,129,0.4); }
     .wa-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
-    .note { margin-top: 24px; background: #1a2e0f; border: 1px solid #3b5110; border-radius: 12px; padding: 16px; font-size: 0.82rem; color: #636d4a; line-height: 1.6; }
-    .note strong { color: #a8c070; }
+    
+    .note { margin-top: 24px; background: rgba(212,175,55,0.05); border: 1px solid rgba(212,175,55,0.15); border-radius: 12px; padding: 16px 20px; font-size: 0.85rem; color: #a1a1aa; line-height: 1.6; display: flex; gap: 12px; align-items: flex-start; }
+    .note strong { color: #d4af37; font-weight: 600; }
   </style>
 </head>
 <body>
-  <h1>💍 Rafaela & Lucas — Disparo de Convites Premium</h1>
-  <p class="sub">Gerado em ${new Date().toLocaleString("pt-BR")} &nbsp;•&nbsp; Cada titular receberá 1 link que contém os QR Codes de todo o seu grupo</p>
-  <div class="stats">
-    <div class="stat"><strong>${titularList.length}</strong><span>Famílias/Titulares</span></div>
-    <div class="stat"><strong>${individuals.length}</strong><span>Total de Pessoas</span></div>
-  </div>
-  <table>
-    <thead>
-      <tr>
-        <th>Nome do Titular</th>
-        <th>Telefone</th>
-        <th>Acomp.</th>
-        <th>Ação</th>
-      </tr>
-    </thead>
-    <tbody>${tableRows}</tbody>
-  </table>
-  <div class="note">
-    <strong>Instrução:</strong> Use apenas 1 link por família. O Titular terá acesso ao QR Code dele e de todos os seus dependentes.
+  <div class="container">
+    <div class="header">
+      <h1>Painel de Disparo</h1>
+      <p class="sub">Casamento Rafaela & Lucas &nbsp;•&nbsp; Gerado em ${new Date().toLocaleString("pt-BR")}</p>
+    </div>
+    
+    <div class="stats">
+      <div class="stat"><strong>${titularList.length}</strong><span>Famílias</span></div>
+      <div class="stat"><strong>${individuals.length}</strong><span>Total de Pessoas</span></div>
+    </div>
+    
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Titular</th>
+            <th>Telefone</th>
+            <th>Acomp.</th>
+            <th>Ação</th>
+          </tr>
+        </thead>
+        <tbody>${tableRows}</tbody>
+      </table>
+    </div>
+    
+    <div class="note">
+      <svg style="width: 20px; height: 20px; color: #d4af37; flex-shrink: 0; margin-top: 2px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+      <div>
+        <strong>Atenção:</strong> Use apenas 1 link por família. O Titular terá acesso ao QR Code de todos os seus dependentes na mesma página.
+      </div>
+    </div>
   </div>
 </body>
 </html>`;

@@ -10,13 +10,13 @@ import { Html5Qrcode } from "html5-qrcode";
 
 // ── Tipos ────────────────────────────────────────────────────────────────────
 interface GuestIndividual {
-  token: string;      // ID único (ex: 8f86dbab)
-  nome: string;       // Nome da pessoa
-  telefone: string;   // Telefone do titular
-  grupoId: string;    // Token do titular
-  isTitular: boolean; // Se é o titular
-  titularNome: string;// Nome do titular do grupo
-  confirmado: boolean;// Status RSVP (global do grupo)
+  token: string;
+  nome: string;
+  telefone: string;
+  grupoId: string;
+  isTitular: boolean;
+  titularNome: string;
+  confirmado: boolean;
 }
 
 interface CheckInRecord {
@@ -24,7 +24,7 @@ interface CheckInRecord {
   entradaEm: string; // ISO timestamp
 }
 
-const STORAGE_KEY = "checkin_registros_v2"; // V2 para suportar novos campos individuais
+const STORAGE_KEY = "checkin_registros_v2";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function loadRecords(): Record<string, CheckInRecord> {
@@ -176,7 +176,6 @@ export default function CheckInPage() {
       return;
     }
 
-    // Busca todo o grupo dessa pessoa
     const group = guests.filter(g => g.grupoId === person.grupoId);
     setFoundGroup(group);
     setSelectedPersonToken(token);
@@ -192,15 +191,10 @@ export default function CheckInPage() {
   };
 
   const toggleCheckIn = (token: string) => {
-    if (records[token]) {
-      // Opcional: permitir desmarcar (clique duplo ou botão específico)
-      // Por enquanto, apenas alerta de duplicidade.
-      return;
-    }
+    if (records[token]) return;
     const updated = saveRecord(token);
     setRecords(updated);
     playBeep("success");
-    // Se a aba for portaria e a pessoa estiver selecionada, atualiza o destaque
     if (selectedPersonToken === token) {
         setHighlightType("success");
     }
@@ -222,66 +216,88 @@ export default function CheckInPage() {
   const totalFaltando = totalGeral - totalPresentes;
   const porcentagem = totalGeral > 0 ? Math.round((totalPresentes / totalGeral) * 100) : 0;
 
+  // ── Constantes Visuais Premium / FinTech Vibes ──────────────────────────────
+  // Fundo principal escuro, focado na clareza.
+  const bgMain = "bg-zinc-950";
+  const bgCard = "bg-zinc-900";
+  const borderColor = "border-white/5";
+  const textTitle = "text-zinc-50";
+  const textSub = "text-zinc-400";
+  const accentColor = "text-[#d4af37]"; // Dourado sutil para detalhes
+
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-[#0a0f08] text-stone-200 font-sans pb-20">
-      {/* Header Fixo */}
-      <header className="sticky top-0 z-[100] bg-[#1a2e0f]/90 backdrop-blur-md border-b border-[#3b5110]/30 px-6 py-4">
+    <div className={`min-h-screen ${bgMain} text-zinc-200 font-sans pb-24 selection:bg-zinc-800`}>
+      {/* ── Header ── */}
+      <header className={`sticky top-0 z-[100] ${bgCard}/80 backdrop-blur-xl border-b ${borderColor} px-6 py-4`}>
         <div className="flex items-center justify-between max-w-2xl mx-auto">
           <div>
-            <h1 className="font-serif text-xl text-[#a8c070] flex items-center gap-2">
-              Check-in <span className="text-[#636d4a] font-sans font-light">| Rafa & Lucas</span>
+            <h1 className={`font-medium text-lg ${textTitle} tracking-tight`}>
+              Gestão de Acesso <span className="text-zinc-500 font-normal">| R&L</span>
             </h1>
-            <div className="flex items-center gap-3 mt-1 text-[10px] text-[#636d4a] uppercase tracking-widest">
-              <span className="flex items-center gap-1"><UserCheck className="w-3 h-3"/> {totalPresentes} Presentes</span>
-              <span className="flex items-center gap-1"><User className="w-3 h-3"/> {totalFaltando} Faltando</span>
+            <div className={`flex items-center gap-4 mt-1.5 text-[11px] font-medium ${textSub} uppercase tracking-wider`}>
+              <span className="flex items-center gap-1.5">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+                {totalPresentes} Entraram
+              </span>
+              <span className="flex items-center gap-1.5">
+                <div className="w-1.5 h-1.5 rounded-full bg-zinc-600"></div>
+                {totalFaltando} Faltam
+              </span>
             </div>
           </div>
-          {loadError ? <WifiOff className="text-red-500 w-5 h-5"/> : <Wifi className="text-green-500/50 w-5 h-5"/>}
+          {loadError ? (
+            <div className="bg-red-500/10 p-2 rounded-full">
+               <WifiOff className="text-red-500 w-4 h-4"/>
+            </div>
+          ) : (
+            <div className="bg-emerald-500/10 p-2 rounded-full">
+               <Wifi className="text-emerald-500 w-4 h-4"/>
+            </div>
+          )}
         </div>
         
-        {/* Barra de Progresso */}
-        <div className="max-w-2xl mx-auto mt-4 h-1 bg-black/40 rounded-full overflow-hidden">
+        {/* Barra de Progresso Dourada Premium */}
+        <div className="max-w-2xl mx-auto mt-5 h-1 bg-zinc-800 rounded-full overflow-hidden">
           <div 
-            className="h-full bg-gradient-to-r from-[#3b5110] to-[#a8c070] transition-all duration-1000"
+            className="h-full bg-gradient-to-r from-zinc-600 via-[#d4af37] to-[#f0e6d2] transition-all duration-1000 ease-out"
             style={{ width: `${porcentagem}%` }}
           />
         </div>
       </header>
 
-      <main className="max-w-2xl mx-auto p-4 space-y-6">
+      <main className="max-w-2xl mx-auto p-4 space-y-6 mt-4">
 
         {activeTab === "portaria" ? (
-          <>
-            {/* Seção de Entrada Manual / Busca */}
+          <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+            {/* ── Busca Central ── */}
             <section className="space-y-4">
               <div className="relative group">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#636d4a] group-focus-within:text-[#a8c070] transition-colors" />
+                <Search className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 ${textSub} group-focus-within:text-zinc-50 transition-colors`} />
                 <input
                   type="text"
-                  placeholder="Pesquisar por nome..."
+                  placeholder="Buscar convidado..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full bg-[#16250e] border border-[#3b5110]/40 rounded-2xl py-4 pl-12 pr-4 outline-none focus:border-[#a8c070]/60 transition-all text-white placeholder-stone-600 shadow-inner"
+                  className={`w-full bg-zinc-900/50 border ${borderColor} rounded-2xl py-4 pl-12 pr-4 outline-none focus:border-zinc-500 transition-all text-white placeholder-zinc-500 text-lg shadow-sm`}
                 />
                 
-                {/* Resultados da Busca */}
                 {filteredSearch.length > 0 && (
-                  <div className="absolute top-full mt-2 w-full bg-[#1a2e0f] border border-[#3b5110]/50 rounded-2xl shadow-2xl overflow-hidden z-[101]">
+                  <div className={`absolute top-full mt-2 w-full ${bgCard} border ${borderColor} rounded-2xl shadow-xl overflow-hidden z-[101]`}>
                     {filteredSearch.map((g) => (
                       <button
                         key={g.token}
                         onClick={() => resolvePerson(g.token)}
-                        className="w-full flex items-center justify-between p-4 hover:bg-[#3b5110]/30 transition-colors border-b border-[#3b5110]/10 last:border-0"
+                        className={`w-full flex items-center justify-between p-4 hover:bg-zinc-800/50 transition-colors border-b ${borderColor} last:border-0`}
                       >
-                        <div>
-                          <p className="text-sm font-semibold">{g.nome}</p>
-                          <p className="text-[10px] text-[#636d4a] uppercase tracking-tighter">Grupo de: {g.titularNome}</p>
+                        <div className="text-left">
+                          <p className="text-base font-medium text-zinc-100">{g.nome}</p>
+                          <p className={`text-[11px] ${textSub} font-medium`}>GRUPO: {g.titularNome}</p>
                         </div>
                         {records[g.token] ? (
-                          <span className="text-[10px] bg-green-500/20 text-green-400 px-2 py-1 rounded-md">Entrou</span>
+                          <span className="text-[11px] font-bold bg-emerald-500/10 text-emerald-400 px-3 py-1 rounded-full uppercase tracking-wider">Entrou</span>
                         ) : (
-                          <ArrowRight className="w-4 h-4 text-[#3b5110]" />
+                          <ArrowRight className="w-5 h-5 text-zinc-600" />
                         )}
                       </button>
                     ))}
@@ -289,56 +305,86 @@ export default function CheckInPage() {
                 )}
               </div>
 
-              {/* Botão Scanner Principal */}
+              {/* ── Botão Scanner ── */}
               {!scannerActive && !foundGroup.length && (
                 <button
                   onClick={startScanner}
-                  className="w-full h-32 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-[#1a2e0f] to-[#0f1a0a] border border-[#3b5110]/40 rounded-3xl hover:border-[#a8c070]/60 transition-all group"
+                  className={`w-full h-36 flex flex-col items-center justify-center gap-3 ${bgCard} border border-dashed border-zinc-700/50 hover:border-zinc-500 rounded-3xl transition-all shadow-sm active:scale-[0.98]`}
                 >
-                  <QrCode className="w-10 h-10 text-[#a8c070] group-hover:scale-110 transition-transform" />
-                  <span className="text-xs font-bold uppercase tracking-widest text-[#a8c070]">Abrir Scanner</span>
+                  <div className="p-4 bg-zinc-800/50 rounded-full">
+                    <QrCode className={`w-8 h-8 ${textTitle}`} />
+                  </div>
+                  <span className={`text-xs font-semibold tracking-widest uppercase ${textTitle}`}>Abrir Câmera</span>
                 </button>
               )}
             </section>
 
-            {/* Scanner Ativo */}
+            {/* ── Câmera Ativa ── */}
             {scannerActive && (
-              <section className="bg-black rounded-3xl overflow-hidden border-2 border-[#3b5110] relative shadow-2xl">
+              <section className="bg-black rounded-3xl overflow-hidden border border-zinc-800 relative shadow-2xl mt-4 animate-in fade-in zoom-in-95 duration-300">
                 <div id="qr-reader" className="w-full overflow-hidden" />
                 <div className="absolute top-4 right-4 z-10">
-                  <button onClick={stopScanner} className="bg-red-900/80 text-white p-2 rounded-full backdrop-blur-md">
+                  <button onClick={stopScanner} className="bg-zinc-900/80 text-white p-3 rounded-full backdrop-blur-md hover:bg-red-500/80 transition-colors">
                     <XCircle className="w-6 h-6" />
                   </button>
                 </div>
-                {scannerError && <p className="p-4 text-center text-red-500">{scannerError}</p>}
-                <div className="bg-[#1a2e0f] p-3 text-center text-[10px] uppercase tracking-widest text-[#636d4a]">
-                  Aponte para o QR Code do convidado
+                {scannerError && <p className="p-4 text-center text-red-500 font-medium">{scannerError}</p>}
+                <div className="bg-zinc-900/90 backdrop-blur-md p-4 text-center text-[11px] font-medium tracking-widest uppercase text-zinc-300">
+                  Posicione o QR Code no centro
                 </div>
               </section>
             )}
 
-            {/* Resultado do Check-in (Grupo/Pessoa) */}
+            {/* ── Erro Token Inválido ── */}
+            {highlightType === "error" && !foundGroup.length && (
+              <div className="mt-8 bg-red-500/10 border border-red-500/20 rounded-3xl p-8 text-center animate-in zoom-in-95 duration-300">
+                 <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                     <XCircle className="w-8 h-8 text-red-500" />
+                 </div>
+                 <h2 className="text-xl font-bold text-red-100 mb-2">QR Code Inválido</h2>
+                 <p className="text-sm text-red-400">Este ingresso não consta na base de dados.</p>
+                 <button onClick={clearResult} className="mt-6 px-6 py-2 bg-zinc-800 text-zinc-300 rounded-full text-sm font-medium hover:bg-zinc-700 transition-colors">
+                     Fechar
+                 </button>
+              </div>
+            )}
+
+            {/* ── Card Família ── */}
             {foundGroup.length > 0 && (
-              <section className="animate-in slide-in-from-bottom-4 duration-500">
-                <div className={`p-6 rounded-3xl border-2 transition-all ${
-                    highlightType === "duplicate" ? "bg-yellow-950/20 border-yellow-600/50 shadow-[0_0_40px_rgba(202,138,4,0.1)]" : 
-                    highlightType === "error" ? "bg-red-950/20 border-red-600/50" : 
-                    "bg-[#1a2e0f] border-[#3b5110]/50"
+              <section className="mt-6 animate-in slide-in-from-bottom-8 duration-500">
+                <div className={`p-6 md:p-8 rounded-[2rem] border transition-all duration-300 shadow-2xl relative overflow-hidden backdrop-blur-xl ${
+                    highlightType === "duplicate" ? "bg-red-950/40 border-red-500/50" : 
+                    "bg-zinc-900/60 border-zinc-700/50"
                 }`}>
                   
-                  {/* Cabeçalho do Card */}
-                  <div className="flex items-start justify-between mb-8">
+                  {/* Glow effect background */}
+                  {highlightType === "duplicate" && (
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[150%] h-[150%] bg-red-500/10 blur-[100px] pointer-events-none" />
+                  )}
+
+                  <div className="flex items-start justify-between mb-8 relative z-10">
                     <div>
-                        <h2 className="text-[10px] uppercase tracking-widest text-[#636d4a] mb-1">Identificado no Grupo de</h2>
-                        <h3 className="font-serif text-2xl text-white">{foundGroup[0].titularNome}</h3>
+                        <p className={`text-[10px] uppercase font-bold tracking-widest mb-2 ${highlightType === 'duplicate' ? 'text-red-400' : 'text-zinc-500'}`}>
+                           Identificado — Titular
+                        </p>
+                        <h3 className="font-semibold text-2xl text-white tracking-tight">{foundGroup[0].titularNome}</h3>
                     </div>
-                    <button onClick={clearResult} className="text-stone-500 hover:text-white">
+                    <button onClick={clearResult} className="text-zinc-500 hover:text-white bg-zinc-800/50 hover:bg-zinc-700 p-2 rounded-full transition-colors">
                         <XCircle className="w-6 h-6" />
                     </button>
                   </div>
 
-                  {/* Listagem do Grupo */}
-                  <div className="space-y-4">
+                  {/* ALERTA GIGANTE DE DUPLICIDADE */}
+                  {highlightType === "duplicate" && (
+                      <div className="mb-8 p-6 bg-red-500/20 border-2 border-red-500 rounded-2xl text-center flex flex-col items-center animate-in zoom-in-95 duration-300 shadow-[0_0_40px_rgba(239,68,68,0.2)] relative z-10">
+                          <AlertTriangle className="w-12 h-12 text-red-500 mb-3" />
+                          <h2 className="text-red-500 font-extrabold text-3xl md:text-4xl uppercase tracking-tight leading-none mb-2">Já Entrou</h2>
+                          <p className="text-sm font-medium text-red-200">Este QR Code já foi lido anteriormente.</p>
+                      </div>
+                  )}
+
+                  <div className="space-y-3 relative z-10">
+                    <p className={`text-[10px] uppercase font-bold tracking-widest ${textSub} mb-1 pl-2`}>Membros da Família</p>
                     {foundGroup.map((person) => {
                         const isSelected = selectedPersonToken === person.token;
                         const hasEntered = !!records[person.token];
@@ -346,22 +392,28 @@ export default function CheckInPage() {
                         return (
                           <div 
                             key={person.token}
-                            className={`flex items-center justify-between p-4 rounded-2xl transition-all ${
-                                isSelected ? "bg-[#3b5110]/40 ring-1 ring-[#a8c070]/30" : "bg-black/20"
+                            className={`flex items-center justify-between p-4 md:p-5 rounded-2xl transition-all ${
+                                isSelected && !hasEntered ? "bg-zinc-800/80 ring-1 ring-zinc-500 shadow-md" : 
+                                hasEntered ? "bg-zinc-950/50 border border-zinc-800/50" : 
+                                "bg-zinc-800/30"
                             }`}
                           >
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-4">
                                 {hasEntered ? (
-                                    <CheckCircle className="w-5 h-5 text-green-500" />
+                                    <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                                        <CheckCircle className="w-5 h-5 text-emerald-500" />
+                                    </div>
                                 ) : (
-                                    <div className="w-5 h-5 border-2 border-[#3b5110] rounded-full" />
+                                    <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center flex-shrink-0 border border-zinc-700">
+                                        <User className="w-4 h-4 text-zinc-500" />
+                                    </div>
                                 )}
                                 <div>
-                                    <p className={`text-sm font-bold ${hasEntered ? "text-stone-400" : "text-white"}`}>
+                                    <p className={`text-base font-semibold ${hasEntered ? "text-zinc-500" : "text-zinc-100"}`}>
                                         {person.nome}
                                     </p>
                                     {hasEntered && (
-                                        <p className="text-[10px] text-green-600/80 uppercase">Entrada às {formatTime(records[person.token].entradaEm)}</p>
+                                        <p className="text-[11px] font-medium text-emerald-600/80 mt-0.5">Entrou às {formatTime(records[person.token].entradaEm)}</p>
                                     )}
                                 </div>
                             </div>
@@ -369,103 +421,101 @@ export default function CheckInPage() {
                             {!hasEntered ? (
                                 <button 
                                   onClick={() => toggleCheckIn(person.token)}
-                                  className="bg-[#3b5110] text-white px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider hover:bg-[#4d6b16]"
+                                  className="bg-emerald-500 hover:bg-emerald-400 text-emerald-950 px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all shadow-lg active:scale-95"
                                 >
                                     Check-in
                                 </button>
                             ) : (
-                                <span className="text-[10px] text-[#636d4a] font-mono">#{person.token}</span>
+                                <span className="text-xs text-zinc-600 font-mono bg-zinc-900 px-3 py-1.5 rounded-lg">ID: {person.token.substring(0,4)}</span>
                             )}
                           </div>
                         );
                     })}
                   </div>
 
-                  {/* Alerta de Duplicidade Gigante */}
-                  {highlightType === "duplicate" && (
-                      <div className="mt-8 p-6 bg-red-600/20 border border-red-500/50 rounded-2xl text-center flex flex-col items-center animate-pulse">
-                          <AlertTriangle className="w-8 h-8 text-red-500 mb-2" />
-                          <p className="text-red-500 font-black text-xl uppercase italic">⚠️ JÁ ENTROU</p>
-                          <p className="text-xs text-red-400 mt-1">Este QR Code já foi processado anteriormente!</p>
-                      </div>
-                  )}
                 </div>
               </section>
             )}
-          </>
+          </div>
         ) : (
           /* Aba Relatório */
-          <section className="space-y-6">
+          <div className="animate-in fade-in slide-in-from-right-4 duration-300 space-y-6">
             
-            {/* Lista Segmentada: Presentes */}
-            <div className="bg-[#1a2e0f]/40 border border-[#3b5110]/20 rounded-3xl overflow-hidden">
-                <div className="p-4 bg-[#1a2e0f] flex items-center justify-between border-b border-[#3b5110]/20">
-                    <h3 className="text-sm font-bold uppercase tracking-widest text-[#a8c070] flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4" /> Presentes ({totalPresentes})
+            {/* Presentes */}
+            <div className={`${bgCard} border ${borderColor} rounded-3xl overflow-hidden shadow-lg`}>
+                <div className={`p-5 flex items-center justify-between border-b ${borderColor}`}>
+                    <h3 className="text-sm font-semibold text-emerald-500 flex items-center gap-2">
+                        <CheckCircle className="w-5 h-5" /> Entradas Confirmadas
                     </h3>
+                    <span className="font-mono text-zinc-400 text-sm">{totalPresentes}</span>
                 </div>
-                <div className="max-h-[40vh] overflow-y-auto">
+                <div className="max-h-[40vh] overflow-y-auto bg-zinc-950/30">
                     {Object.values(records)
                         .sort((a, b) => b.entradaEm.localeCompare(a.entradaEm))
                         .map(rec => {
                             const p = guests.find(g => g.token === rec.token);
                             return (
-                                <div key={rec.token} className="flex items-center justify-between px-6 py-4 border-b border-[#3b5110]/10 last:border-0 hover:bg-white/5 transition-colors">
+                                <div key={rec.token} className={`flex items-center justify-between px-6 py-4 border-b ${borderColor} last:border-0 hover:bg-white/5 transition-colors`}>
                                     <div>
-                                        <p className="text-sm font-semibold text-white">{p?.nome || "Desconhecido"}</p>
-                                        <p className="text-[10px] text-[#636d4a] uppercase">Grupo: {p?.titularNome}</p>
+                                        <p className="text-sm font-medium text-zinc-100">{p?.nome || "Desconhecido"}</p>
+                                        <p className={`text-[11px] ${textSub} font-medium mt-0.5`}>TITULAR: {p?.titularNome}</p>
                                     </div>
-                                    <p className="text-xs text-stone-500 font-mono">{formatTime(rec.entradaEm)}</p>
+                                    <p className="text-xs text-zinc-500 font-mono tracking-tight">{formatTime(rec.entradaEm)}</p>
                                 </div>
                             );
                         })
                     }
-                    {totalPresentes === 0 && <p className="px-6 py-10 text-center text-[#636d4a] text-xs">Ninguém chegou ainda.</p>}
+                    {totalPresentes === 0 && <p className={`px-6 py-12 text-center ${textSub} text-sm font-medium`}>Nenhuma entrada registrada.</p>}
                 </div>
             </div>
 
-            {/* Lista Segmentada: Ausentes */}
-            <div className="bg-[#1a2e0f]/10 border border-stone-800 rounded-3xl overflow-hidden">
-                <div className="p-4 flex items-center justify-between border-b border-stone-800">
-                    <h3 className="text-sm font-bold uppercase tracking-widest text-stone-500 flex items-center gap-2">
-                        <History className="w-4 h-4" /> Ainda Faltam ({totalFaltando})
+            {/* Ausentes */}
+            <div className={`${bgCard} border ${borderColor} rounded-3xl overflow-hidden shadow-lg opacity-80`}>
+                <div className={`p-5 flex items-center justify-between border-b ${borderColor}`}>
+                    <h3 className="text-sm font-semibold text-zinc-400 flex items-center gap-2">
+                        <History className="w-5 h-5" /> Aguardando Chegada
                     </h3>
+                    <span className="font-mono text-zinc-500 text-sm">{totalFaltando}</span>
                 </div>
-                <div className="max-h-[40vh] overflow-y-auto">
+                <div className="max-h-[30vh] overflow-y-auto bg-zinc-950/30">
                     {guests.filter(g => !records[g.token])
                         .sort((a,b) => a.nome.localeCompare(b.nome))
                         .map(p => (
-                            <div key={p.token} className="flex items-center justify-between px-6 py-4 border-b border-stone-800/40 last:border-0 opacity-60">
+                            <div key={p.token} className={`flex items-center justify-between px-6 py-4 border-b border-zinc-800/40 last:border-0`}>
                                 <div>
-                                    <p className="text-sm">{p.nome}</p>
-                                    <p className="text-[10px] text-stone-600 uppercase">Titular: {p.titularNome}</p>
+                                    <p className="text-sm font-medium text-zinc-400">{p.nome}</p>
+                                    <p className="text-[11px] text-zinc-600 font-medium mt-0.5">TITULAR: {p.titularNome}</p>
                                 </div>
-                                <XCircle className="w-4 h-4 text-stone-800" />
+                                <div className="w-2 h-2 rounded-full bg-zinc-700"></div>
                             </div>
                         ))
                     }
                 </div>
             </div>
-          </section>
+          </div>
         )}
       </main>
 
-      {/* Navegação Inferior (Abas) */}
-      <nav className="fixed bottom-0 left-0 w-full bg-[#1a2e0f] border-t border-[#3b5110]/40 px-6 py-4 flex items-center justify-around translate-z-0">
+      {/* Navegação Inferior */}
+      <nav className={`fixed bottom-0 left-0 w-full ${bgCard}/90 backdrop-blur-xl border-t ${borderColor} pb-6 pt-3 px-6 flex items-center justify-around z-50`}>
         <button 
           onClick={() => setActiveTab("portaria")}
-          className={`flex flex-col items-center gap-1 transition-all ${activeTab === "portaria" ? "text-[#a8c070] scale-110" : "text-[#636d4a]"}`}
+          className={`flex flex-col items-center gap-1.5 transition-all p-2 rounded-xl active:scale-95 ${activeTab === "portaria" ? "text-zinc-50" : "text-zinc-500 hover:text-zinc-400"}`}
         >
-          <LayoutDashboard className="w-6 h-6" />
-          <span className="text-[10px] font-bold uppercase tracking-tighter">Portaria</span>
+          <div className={`p-2 rounded-full transition-colors ${activeTab === "portaria" ? "bg-zinc-800" : "bg-transparent"}`}>
+            <LayoutDashboard className="w-6 h-6" />
+          </div>
+          <span className="text-[10px] font-bold uppercase tracking-widest">Scanner</span>
         </button>
 
         <button 
           onClick={() => setActiveTab("relatorio")}
-          className={`flex flex-col items-center gap-1 transition-all ${activeTab === "relatorio" ? "text-[#a8c070] scale-110" : "text-[#636d4a]"}`}
+          className={`flex flex-col items-center gap-1.5 transition-all p-2 rounded-xl active:scale-95 ${activeTab === "relatorio" ? "text-zinc-50" : "text-zinc-500 hover:text-zinc-400"}`}
         >
-          <ListFilter className="w-6 h-6" />
-          <span className="text-[10px] font-bold uppercase tracking-tighter">Relatório</span>
+          <div className={`p-2 rounded-full transition-colors ${activeTab === "relatorio" ? "bg-zinc-800" : "bg-transparent"}`}>
+            <ListFilter className="w-6 h-6" />
+          </div>
+          <span className="text-[10px] font-bold uppercase tracking-widest">Métricas</span>
         </button>
       </nav>
     </div>
