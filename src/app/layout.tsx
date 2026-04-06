@@ -20,8 +20,14 @@ const greatVibes = Great_Vibes({
 });
 
 export const metadata: Metadata = {
-  title: "Convite de Casamento | Carolina & Jonas",
-  description: "Venha celebrar nosso amor conosco!",
+  title: "Convite de Casamento | Rafaela & Lucas",
+  description: "Com grande alegria, convidamos você para celebrar o nosso amor!",
+  openGraph: {
+    title: "Convite de Casamento | Rafaela & Lucas",
+    description: "Com grande alegria, convidamos você para celebrar o nosso amor!",
+    images: ["/hero.jpg"],
+    type: "website",
+  }
 };
 
 export default function RootLayout({
