@@ -1,10 +1,21 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { MapPin, Music2, Music3, Gift, CalendarCheck, Quote, MailOpen } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
-import Image from "next/image";
+import { MapPin, Music2, Music3, Gift, CalendarCheck, Quote, MailOpen, QrCode, Download, UserCheck, UserX } from "lucide-react";
+import { useState, useRef, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import { QRCodeSVG } from "qrcode.react";
 
+// ── Tipos ────────────────────────────────────────────────────────────────────
+interface Guest {
+  nome: string;
+  telefone: string;
+  acompanhantes: number;
+  token: string;
+  confirmado: boolean;
+}
+
+// ── Componentes auxiliares ───────────────────────────────────────────────────
 const FloralBorders = () => (
   <>
     <div className="absolute top-0 left-0 w-24 md:w-1/3 lg:w-1/4 h-full pointer-events-none mix-blend-multiply opacity-40 md:opacity-80 bg-[url('/vertical-floral.png')] bg-left-top bg-contain bg-repeat-y -ml-6 md:-ml-[10%] z-0"></div>
@@ -12,11 +23,35 @@ const FloralBorders = () => (
   </>
 );
 
-export default function Home() {
+// ── Número do WhatsApp dos noivos ─────────────────────────────────────────────
+const WHATSAPP_NUMBER = "5581995478867";
+const BASE_URL = "https://conviterafaelucas.vercel.app";
+
+// ── Conteúdo principal (precisa de Suspense por usar useSearchParams) ─────────
+function InviteContent() {
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token");
+
+  const [guest, setGuest] = useState<Guest | null>(null);
+  const [guestLoaded, setGuestLoaded] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [pixCopied, setPixCopied] = useState(false);
   const [showEntrance, setShowEntrance] = useState(true);
+  const [showQR, setShowQR] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Carrega lista de convidados e encontra pelo token
+  useEffect(() => {
+    if (!token) { setGuestLoaded(true); return; }
+    fetch("/guests.json")
+      .then((r) => r.json())
+      .then((guests: Guest[]) => {
+        const found = guests.find((g) => g.token === token) ?? null;
+        setGuest(found);
+        setGuestLoaded(true);
+      })
+      .catch(() => setGuestLoaded(true));
+  }, [token]);
 
   useEffect(() => {
     audioRef.current = new Audio("/music.mp3");
@@ -25,11 +60,7 @@ export default function Home() {
 
   const toggleAudio = () => {
     if (!audioRef.current) return;
-    if (isPlaying) {
-      audioRef.current.pause();
-    } else {
-      audioRef.current.play();
-    }
+    if (isPlaying) { audioRef.current.pause(); } else { audioRef.current.play(); }
     setIsPlaying(!isPlaying);
   };
 
@@ -42,17 +73,57 @@ export default function Home() {
   const openInvitation = () => {
     setShowEntrance(false);
     if (audioRef.current) {
-      audioRef.current.play().catch(e => console.log("Audio play failed:", e));
+      audioRef.current.play().catch((e) => console.log("Audio play failed:", e));
       setIsPlaying(true);
     }
   };
 
+  // ── Mensagens RSVP para WhatsApp ──────────────────────────────────────────
+  const buildRsvpMessage = (confirmou: boolean) => {
+    const status = confirmou ? "Confirmo minha presença ✅" : "Não poderei ir ❌";
+    const nome = guest?.nome ?? "Convidado";
+    const acomp = guest?.acompanhantes ?? 0;
+    const tok = guest?.token ?? token ?? "sem-token";
+    const msg =
+      `${status}\n\n` +
+      `Nome: ${nome}\n` +
+      `Token: ${tok}\n` +
+      `Acompanhantes: ${acomp}`;
+    return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
+  };
+
+  // ── Download do QR Code ───────────────────────────────────────────────────
+  const downloadQR = () => {
+    const svg = document.getElementById("guest-qrcode");
+    if (!svg) return;
+    const serializer = new XMLSerializer();
+    const svgStr = serializer.serializeToString(svg);
+    const canvas = document.createElement("canvas");
+    canvas.width = 400; canvas.height = 400;
+    const ctx = canvas.getContext("2d")!;
+    const img = new Image();
+    img.onload = () => {
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, 400, 400);
+      ctx.drawImage(img, 0, 0, 400, 400);
+      const a = document.createElement("a");
+      a.download = `qrcode-${guest?.nome ?? "convite"}.png`;
+      a.href = canvas.toDataURL("image/png");
+      a.click();
+    };
+    img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgStr)));
+  };
+
+  const guestUrl = `${BASE_URL}/?token=${token}`;
   const oliveColor = "text-[#3b5110]";
   const sageColor = "text-[#636d4a]";
 
+  // Aguarda carregamento antes de renderizar (evita flash)
+  if (token && !guestLoaded) return null;
+
   return (
     <main className={`w-full h-screen relative bg-[#fdfaf6] ${showEntrance ? "overflow-hidden" : "snap-y-mandatory overflow-y-scroll overflow-x-hidden"}`}>
-      
+
       {/* Entrance Overlay */}
       <AnimatePresence>
         {showEntrance && (
@@ -71,8 +142,18 @@ export default function Home() {
             >
               <MailOpen className={`${oliveColor} w-10 h-10 mb-6 stroke-[1.5]`} />
               <h2 className={`font-serif text-4xl ${oliveColor} mb-2`}>Rafaela & Lucas</h2>
-              <p className={`${sageColor} font-light text-xs mb-12 uppercase tracking-widest`}>Você foi convidado</p>
-              
+
+              {/* Saudação personalizada se token válido */}
+              {guest ? (
+                <p className={`${sageColor} font-light text-sm mb-3`}>
+                  Olá, <strong>{guest.nome}</strong>! 🌸
+                </p>
+              ) : null}
+
+              <p className={`${sageColor} font-light text-xs mb-12 uppercase tracking-widest`}>
+                {guest ? "Seu convite personalizado" : "Você foi convidado"}
+              </p>
+
               <button
                 onClick={openInvitation}
                 className={`bg-[#3b5110] text-white px-10 py-4 rounded-full text-xs font-bold uppercase tracking-widest border border-[#3b5110] hover:bg-transparent hover:text-[#3b5110] transition-all shadow-xl`}
@@ -102,14 +183,11 @@ export default function Home() {
 
       {/* Section 1: Photo Hero */}
       <section className="h-screen w-full relative flex flex-col justify-end items-center snap-start overflow-hidden z-20 bg-black pb-36 md:pb-28">
-        {/* Background Photo */}
         <img
           src="/hero.jpg"
           alt="Os Noivos"
           className="absolute inset-0 w-full h-full object-cover z-0 object-center"
         />
-
-        {/* Overlay escuro para garantir legibilidade, mas suave */}
         <div className="absolute inset-0 bg-black/30 z-10"></div>
 
         <motion.div
@@ -146,7 +224,6 @@ export default function Home() {
           transition={{ duration: 1 }}
           className="text-center z-10 flex flex-col items-center w-full"
         >
-          {/* Foto 2: Imagem do casal grande */}
           <div className="mb-10 md:mb-14 relative w-full xl:w-[80vw] max-w-4xl h-[40vh] md:h-[65vh] mt-4 z-10">
             <img src="/foto-2.jpg" alt="Momentos dos Noivos" className="w-full h-full object-cover rounded-3xl shadow-2xl border-4 border-white/80" />
           </div>
@@ -154,17 +231,11 @@ export default function Home() {
           <p className={`${sageColor} text-xs md:text-sm tracking-[0.3em] uppercase mb-4 md:mb-8`}>A realizar-se no dia</p>
 
           <div className={`flex gap-3 md:gap-6 justify-center items-center font-serif text-5xl md:text-7xl ${oliveColor} mb-6 md:mb-8`}>
-            <div className="flex flex-col items-center">
-              <span>12</span>
-            </div>
+            <div className="flex flex-col items-center"><span>12</span></div>
             <div className="text-stone-300 font-light text-3xl md:text-4xl">/</div>
-            <div className="flex flex-col items-center">
-              <span>07</span>
-            </div>
+            <div className="flex flex-col items-center"><span>07</span></div>
             <div className="text-stone-300 font-light text-3xl md:text-4xl">/</div>
-            <div className="flex flex-col items-center">
-              <span>2026</span>
-            </div>
+            <div className="flex flex-col items-center"><span>2026</span></div>
           </div>
 
           <p className={`${sageColor} tracking-widest uppercase mb-16 text-sm`}>às 15:30 horas</p>
@@ -172,7 +243,7 @@ export default function Home() {
           <div className="mt-10 px-8 py-6 border-t border-b border-[#3b5110]/20 relative">
             <Quote className={`absolute -top-4 bg-[#fcf9f2] px-2 left-1/2 -translate-x-1/2 w-8 h-8 ${sageColor} opacity-50`} />
             <p className={`font-serif text-xl md:text-2xl ${sageColor} italic font-light leading-relaxed`}>
-              "Portanto, o que Deus uniu, ninguém o separe."
+              &quot;Portanto, o que Deus uniu, ninguém o separe.&quot;
             </p>
             <p className={`mt-4 text-xs font-bold uppercase tracking-widest ${oliveColor}`}>Mateus 19:6</p>
           </div>
@@ -229,7 +300,6 @@ export default function Home() {
               Ver no Mapa
             </a>
           </div>
-
         </motion.div>
       </section>
 
@@ -242,33 +312,103 @@ export default function Home() {
           transition={{ duration: 1 }}
           className="text-center z-10 w-full max-w-5xl flex flex-col items-center"
         >
-
           <div className="flex flex-col md:flex-row gap-8 w-full justify-center items-stretch mb-16">
-            {/* O RSVP Card */}
+
+            {/* RSVP Card — personalizado ou genérico */}
             <div className="bg-white rounded-3xl shadow-[0_10px_40px_-15px_rgba(0,0,0,0.1)] px-8 py-10 w-full max-w-md flex flex-col justify-between">
               <div>
                 <CalendarCheck className={`${oliveColor} w-8 h-8 mx-auto mb-4 stroke-[1.5]`} />
-                <h2 className={`font-serif text-2xl ${oliveColor} mb-4`}>Sua presença é muito importante!</h2>
+                <h2 className={`font-serif text-2xl ${oliveColor} mb-4`}>
+                  {guest ? `${guest.nome}, sua presença é importante!` : "Sua presença é muito importante!"}
+                </h2>
                 <p className={`${sageColor} text-sm mb-6 leading-relaxed font-light px-2`}>
                   Por favor, confirme se poderá comparecer até o dia:
                 </p>
-                
                 <div className="bg-[#fcf9f2] py-5 px-4 rounded-2xl mb-6 flex flex-col items-center justify-center">
                   <p className="font-bold text-[#3b5110] text-lg tracking-widest uppercase mb-1">30 de Junho</p>
                   <p className={`${sageColor} text-sm font-light tracking-widest`}>DE 2026</p>
                 </div>
+
+                {/* QR Code do convidado */}
+                {guest && token && (
+                  <div className="mb-6">
+                    <button
+                      onClick={() => setShowQR(!showQR)}
+                      className="flex items-center gap-2 mx-auto text-xs text-[#3b5110] underline underline-offset-4"
+                    >
+                      <QrCode className="w-4 h-4" />
+                      {showQR ? "Ocultar QR Code" : "Ver meu QR Code de entrada"}
+                    </button>
+
+                    <AnimatePresence>
+                      {showQR && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="mt-4 flex flex-col items-center gap-3"
+                        >
+                          <div className="p-3 bg-white border border-stone-200 rounded-2xl shadow-sm">
+                            <QRCodeSVG
+                              id="guest-qrcode"
+                              value={guestUrl}
+                              size={180}
+                              fgColor="#3b5110"
+                              bgColor="#ffffff"
+                            />
+                          </div>
+                          <p className="text-xs text-[#636d4a] text-center leading-relaxed">
+                            📱 Apresente este QR Code na entrada do evento
+                          </p>
+                          <button
+                            onClick={downloadQR}
+                            className="flex items-center gap-2 text-xs border border-[#3b5110] text-[#3b5110] px-4 py-2 rounded-full hover:bg-[#3b5110] hover:text-white transition-all"
+                          >
+                            <Download className="w-3 h-3" />
+                            Baixar QR Code
+                          </button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                )}
               </div>
-              <a
-                href="https://wa.me/5581995478867?text=Oi%20Rafaela%20e%20Lucas,%20ficamos%20felizes%20pelo%20convite%20e%20j%C3%A1%20confirmamos%20nossa%20presen%C3%A7a%20para%20celebrar%20esse%20dia%20t%C3%A3o%20especial%20com%20voc%C3%AAs"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`bg-[#3b5110] text-white px-8 py-4 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-[#2e400c] transition-all shadow-md w-full inline-block mt-auto`}
-              >
-                Confirmar pelo WhatsApp
-              </a>
+
+              {/* Botões RSVP */}
+              {guest ? (
+                <div className="flex flex-col gap-3 mt-auto">
+                  <a
+                    href={buildRsvpMessage(true)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-[#3b5110] text-white px-8 py-4 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-[#2e400c] transition-all shadow-md w-full inline-flex items-center justify-center gap-2"
+                  >
+                    <UserCheck className="w-4 h-4" />
+                    Confirmar Presença ✅
+                  </a>
+                  <a
+                    href={buildRsvpMessage(false)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="border border-red-300 text-red-400 px-8 py-4 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-red-50 transition-all w-full inline-flex items-center justify-center gap-2"
+                  >
+                    <UserX className="w-4 h-4" />
+                    Não poderei ir ❌
+                  </a>
+                </div>
+              ) : (
+                <a
+                  href="https://wa.me/5581995478867?text=Oi%20Rafaela%20e%20Lucas,%20ficamos%20felizes%20pelo%20convite%20e%20já%20confirmamos%20nossa%20presença%20para%20celebrar%20esse%20dia%20tão%20especial%20com%20vocês"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-[#3b5110] text-white px-8 py-4 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-[#2e400c] transition-all shadow-md w-full inline-block mt-auto text-center"
+                >
+                  Confirmar pelo WhatsApp
+                </a>
+              )}
             </div>
 
-            {/* O Pix Card */}
+            {/* Pix Card */}
             <div className="bg-white rounded-3xl shadow-[0_10px_40px_-15px_rgba(0,0,0,0.1)] px-8 py-10 w-full max-w-md flex flex-col justify-between">
               <div>
                 <Gift className={`${oliveColor} w-8 h-8 mx-auto mb-4 stroke-[1.5]`} />
@@ -276,14 +416,12 @@ export default function Home() {
                 <p className={`${sageColor} text-sm mb-6 leading-relaxed font-light`}>
                   Nosso maior presente é sua presença! Caso queira nos presentear, sugerimos que seja via PIX:
                 </p>
-                
                 <div className="bg-[#fcf9f2] py-5 px-4 rounded-2xl mb-6 text-sm font-light text-[#636d4a] flex flex-col items-center justify-center">
                   <p className="font-bold text-[#3b5110] text-lg mb-1 tracking-widest">81995478867</p>
                   <p className="mb-3">Rafaela Evelin</p>
                   <img src="/bancointer.png" alt="Banco Inter" className="h-8 object-contain mix-blend-multiply opacity-80" />
                 </div>
               </div>
-
               <button
                 onClick={copyPixUrl}
                 className={`border border-[#3b5110] ${pixCopied ? 'bg-[#3b5110] text-white' : oliveColor} px-8 py-4 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-[#3b5110] hover:text-white transition-all shadow-sm w-full inline-block mt-auto`}
@@ -293,7 +431,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Assinatura com a fonte Script cursiva gigante igual a referência */}
+          {/* Assinatura */}
           <div className="flex flex-col items-center mt-4">
             <p className={`font-serif uppercase tracking-[0.3em] text-sm ${oliveColor} mb-6`}>
               Com carinho
@@ -305,7 +443,7 @@ export default function Home() {
         </motion.div>
       </section>
 
-      {/* Section 5: Foto Final Cobrindo a Tela */}
+      {/* Section 5: Foto Final */}
       <section className="h-screen w-full relative flex flex-col justify-center items-center snap-start overflow-hidden z-20 bg-black">
         <img
           src="/foto-3.jpg"
@@ -322,5 +460,14 @@ export default function Home() {
         </motion.div>
       </section>
     </main>
+  );
+}
+
+// ── Página exportada com Suspense (obrigatório para useSearchParams) ──────────
+export default function Home() {
+  return (
+    <Suspense>
+      <InviteContent />
+    </Suspense>
   );
 }

@@ -22,6 +22,7 @@ const greatVibes = Great_Vibes({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://conviterafaelucas.vercel.app"),
   title: "Convite de Casamento | Rafaela & Lucas",
   description: "Com grande alegria, convidamos você para celebrar o nosso amor!",
   openGraph: {
