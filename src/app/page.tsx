@@ -8,10 +8,12 @@ import { QRCodeSVG } from "qrcode.react";
 
 // ── Tipos ────────────────────────────────────────────────────────────────────
 interface Guest {
+  token: string;
   nome: string;
   telefone: string;
-  acompanhantes: number;
-  token: string;
+  grupoId: string;
+  isTitular: boolean;
+  titularNome: string;
   confirmado: boolean;
 }
 
@@ -33,21 +35,26 @@ function InviteContent() {
   const token = searchParams.get("token");
 
   const [guest, setGuest] = useState<Guest | null>(null);
+  const [groupMembers, setGroupMembers] = useState<Guest[]>([]);
   const [guestLoaded, setGuestLoaded] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [pixCopied, setPixCopied] = useState(false);
   const [showEntrance, setShowEntrance] = useState(true);
-  const [showQR, setShowQR] = useState(false);
+  const [showQR, setShowQR] = useState(true); // Visível por padrão agora
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Carrega lista de convidados e encontra pelo token
+  // Carrega lista de convidados e encontra pelo token + membros do grupo
   useEffect(() => {
     if (!token) { setGuestLoaded(true); return; }
     fetch("/guests.json")
       .then((r) => r.json())
       .then((guests: Guest[]) => {
         const found = guests.find((g) => g.token === token) ?? null;
-        setGuest(found);
+        if (found) {
+          setGuest(found);
+          const members = guests.filter((g) => g.grupoId === found.grupoId);
+          setGroupMembers(members);
+        }
         setGuestLoaded(true);
       })
       .catch(() => setGuestLoaded(true));
@@ -82,7 +89,7 @@ function InviteContent() {
   const buildRsvpMessage = (confirmou: boolean) => {
     const status = confirmou ? "Confirmo minha presença ✅" : "Não poderei ir ❌";
     const nome = guest?.nome ?? "Convidado";
-    const acomp = guest?.acompanhantes ?? 0;
+    const acomp = groupMembers.length > 1 ? groupMembers.length - 1 : 0;
     const tok = guest?.token ?? token ?? "sem-token";
     const msg =
       `${status}\n\n` +
@@ -93,8 +100,8 @@ function InviteContent() {
   };
 
   // ── Download do QR Code ───────────────────────────────────────────────────
-  const downloadQR = () => {
-    const svg = document.getElementById("guest-qrcode");
+  const downloadQR = (id: string, fileName: string) => {
+    const svg = document.getElementById(id);
     if (!svg) return;
     const serializer = new XMLSerializer();
     const svgStr = serializer.serializeToString(svg);
@@ -107,14 +114,13 @@ function InviteContent() {
       ctx.fillRect(0, 0, 400, 400);
       ctx.drawImage(img, 0, 0, 400, 400);
       const a = document.createElement("a");
-      a.download = `qrcode-${guest?.nome ?? "convite"}.png`;
+      a.download = `qrcode-${fileName}.png`;
       a.href = canvas.toDataURL("image/png");
       a.click();
     };
     img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgStr)));
   };
 
-  const guestUrl = `${BASE_URL}/?token=${token}`;
   const oliveColor = "text-[#3b5110]";
   const sageColor = "text-[#636d4a]";
 
@@ -329,15 +335,15 @@ function InviteContent() {
                   <p className={`${sageColor} text-sm font-light tracking-widest`}>DE 2026</p>
                 </div>
 
-                {/* QR Code do convidado */}
-                {guest && token && (
+                {/* QR Codes do grupo */}
+                {guest && groupMembers.length > 0 && (
                   <div className="mb-6">
                     <button
                       onClick={() => setShowQR(!showQR)}
-                      className="flex items-center gap-2 mx-auto text-xs text-[#3b5110] underline underline-offset-4"
+                      className="flex items-center gap-2 mx-auto text-xs text-[#3b5110] underline underline-offset-4 mb-4"
                     >
                       <QrCode className="w-4 h-4" />
-                      {showQR ? "Ocultar QR Code" : "Ver meu QR Code de entrada"}
+                      {showQR ? "Ocultar Meus Ingressos" : "Ver Meus Ingressos (QR Codes)"}
                     </button>
 
                     <AnimatePresence>
@@ -346,27 +352,40 @@ function InviteContent() {
                           initial={{ opacity: 0, height: 0 }}
                           animate={{ opacity: 1, height: "auto" }}
                           exit={{ opacity: 0, height: 0 }}
-                          className="mt-4 flex flex-col items-center gap-3"
+                          className="flex flex-col gap-6"
                         >
-                          <div className="p-3 bg-white border border-stone-200 rounded-2xl shadow-sm">
-                            <QRCodeSVG
-                              id="guest-qrcode"
-                              value={guestUrl}
-                              size={180}
-                              fgColor="#3b5110"
-                              bgColor="#ffffff"
-                            />
+                          <div className="bg-[#fcf9f2] p-4 rounded-2xl border border-[#3b5110]/10">
+                             <p className="text-[10px] uppercase tracking-wider text-[#3b5110] font-bold mb-3">Instrução de Entrada</p>
+                             <p className="text-xs text-[#636d4a] leading-relaxed">
+                               Cada pessoa deve apresentar seu próprio QR Code na entrada. Se estiver em grupo, mostre um por um para a equipe.
+                             </p>
                           </div>
-                          <p className="text-xs text-[#636d4a] text-center leading-relaxed">
-                            📱 Apresente este QR Code na entrada do evento
-                          </p>
-                          <button
-                            onClick={downloadQR}
-                            className="flex items-center gap-2 text-xs border border-[#3b5110] text-[#3b5110] px-4 py-2 rounded-full hover:bg-[#3b5110] hover:text-white transition-all"
-                          >
-                            <Download className="w-3 h-3" />
-                            Baixar QR Code
-                          </button>
+
+                          <div className="flex flex-col gap-8">
+                            {groupMembers.map((member) => (
+                              <div key={member.token} className="flex flex-col items-center group">
+                                <p className={`text-xs font-bold uppercase tracking-widest ${oliveColor} mb-3`}>
+                                  {member.nome} {member.isTitular ? "⭐" : ""}
+                                </p>
+                                <div className="p-4 bg-white border border-stone-200 rounded-3xl shadow-sm transition-transform group-hover:scale-[1.02]">
+                                  <QRCodeSVG
+                                    id={`qr-${member.token}`}
+                                    value={`${BASE_URL}/?token=${member.token}`}
+                                    size={180}
+                                    fgColor="#3b5110"
+                                    bgColor="#ffffff"
+                                  />
+                                </div>
+                                <button
+                                  onClick={() => downloadQR(`qr-${member.token}`, member.nome)}
+                                  className="mt-3 flex items-center gap-2 text-[10px] text-[#636d4a] hover:text-[#3b5110] transition-colors"
+                                >
+                                  <Download className="w-3 h-3" />
+                                  Baixar QR de {member.nome.split(" ")[0]}
+                                </button>
+                              </div>
+                            ))}
+                          </div>
                         </motion.div>
                       )}
                     </AnimatePresence>

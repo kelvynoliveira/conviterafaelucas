@@ -1,44 +1,56 @@
 [
   {
-    "nome": "João da Silva",
+    "token": "9465c490",
+    "nome": "João Silva",
     "telefone": "81999990001",
-    "acompanhantes": 1,
-    "token": "8f86dbab",
+    "grupoId": "9465c490",
+    "isTitular": true,
+    "titularNome": "João Silva",
     "confirmado": false
   },
   {
-    "nome": "Maria Oliveira",
-    "telefone": "81999990002",
-    "acompanhantes": 2,
-    "token": "f33164c7",
+    "token": "4c6cd80f",
+    "nome": "\"Maria Silva",
+    "telefone": "81999990001",
+    "grupoId": "9465c490",
+    "isTitular": false,
+    "titularNome": "João Silva",
     "confirmado": false
   },
   {
-    "nome": "Pedro Santos",
-    "telefone": "81999990003",
-    "acompanhantes": 0,
-    "token": "b6be273e",
+    "token": "2e97f233",
+    "nome": "Pedro Silva\"",
+    "telefone": "81999990001",
+    "grupoId": "9465c490",
+    "isTitular": false,
+    "titularNome": "João Silva",
     "confirmado": false
   },
   {
-    "nome": "Ana Paula Lima",
-    "telefone": "81999990004",
-    "acompanhantes": 1,
-    "token": "27ac9c59",
+    "token": "b3a4a2a1",
+    "nome": "Ana Souza",
+    "telefone": "81988880002",
+    "grupoId": "b3a4a2a1",
+    "isTitular": true,
+    "titularNome": "Ana Souza",
     "confirmado": false
   },
   {
-    "nome": "Carlos Mendes",
-    "telefone": "81999990005",
-    "acompanhantes": 3,
-    "token": "69bb04ec",
+    "token": "df4520a5",
+    "nome": "Acomp. 1 (Ana Souza)",
+    "telefone": "81988880002",
+    "grupoId": "b3a4a2a1",
+    "isTitular": false,
+    "titularNome": "Ana Souza",
     "confirmado": false
   },
   {
-    "nome": "Fernanda Costa",
-    "telefone": "81999990006",
-    "acompanhantes": 1,
-    "token": "597d0535",
+    "token": "c9d91e51",
+    "nome": "Claudio Lins",
+    "telefone": "81977770003",
+    "grupoId": "c9d91e51",
+    "isTitular": true,
+    "titularNome": "Claudio Lins",
     "confirmado": false
   }
 ]
