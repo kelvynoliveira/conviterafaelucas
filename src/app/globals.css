@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+@theme {
+  --color-stone-50: #fafaf9;
+  --color-rose-50: #fff1f2;
+  --color-rose-100: #ffe4e6;
+  --color-rose-800: #9f1239;
+  --font-serif: var(--font-playfair), ui-serif, Georgia, serif;
+  --font-sans: var(--font-lato), ui-sans-serif, system-ui, sans-serif;
+  --font-script: var(--font-script), cursive;
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-white/30 backdrop-blur-md border border-white/40 shadow-lg;
+  }
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--color-stone-50);
+}
+
+h1, h2, h3, h4, h5, h6, .font-serif {
+  font-family: var(--font-serif);
+}
+
+/* Snap Scroll Settings */
+.snap-y-mandatory {
+  scroll-snap-type: y mandatory;
+  overflow-y: scroll;
+  height: 100vh;
+}
+.snap-center {
+  scroll-snap-align: center;
+}
