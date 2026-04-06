@@ -7,8 +7,8 @@ import Image from "next/image";
 
 const FloralBorders = () => (
   <>
-    <div className="absolute top-0 left-0 w-[45%] md:w-[35%] lg:w-[25%] h-full pointer-events-none mix-blend-multiply opacity-80 bg-[url('/vertical-floral.png')] bg-left-top bg-contain bg-repeat-y -ml-[10%] z-0"></div>
-    <div className="absolute top-0 right-0 w-[45%] md:w-[35%] lg:w-[25%] h-full pointer-events-none mix-blend-multiply opacity-80 bg-[url('/vertical-floral.png')] bg-right-top bg-contain bg-repeat-y scale-x-[-1] -mr-[10%] z-0"></div>
+    <div className="absolute top-0 left-0 w-24 md:w-1/3 lg:w-1/4 h-full pointer-events-none mix-blend-multiply opacity-40 md:opacity-80 bg-[url('/vertical-floral.png')] bg-left-top bg-contain bg-repeat-y -ml-6 md:-ml-[10%] z-0"></div>
+    <div className="absolute top-0 right-0 w-24 md:w-1/3 lg:w-1/4 h-full pointer-events-none mix-blend-multiply opacity-40 md:opacity-80 bg-[url('/vertical-floral.png')] bg-right-top bg-contain bg-repeat-y scale-x-[-1] -mr-6 md:-mr-[10%] z-0"></div>
   </>
 );
 
@@ -101,7 +101,7 @@ export default function Home() {
       </button>
 
       {/* Section 1: Photo Hero */}
-      <section className="h-screen w-full relative flex flex-col justify-center items-center snap-start overflow-hidden z-20 bg-black">
+      <section className="h-screen w-full relative flex flex-col justify-end items-center snap-start overflow-hidden z-20 bg-black pb-36 md:pb-28">
         {/* Background Photo */}
         <img
           src="/hero.jpg"
@@ -116,12 +116,12 @@ export default function Home() {
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 1.5, ease: "easeOut" }}
-          className="z-20 text-center text-white px-6 mt-[45vh] md:mt-[50vh]"
+          className="z-20 text-center text-white px-6"
         >
-          <h1 className="font-serif text-6xl md:text-8xl mb-4 drop-shadow-md" style={{ fontFamily: "'Playfair Display', serif" }}>
-            Rafaela <span className="text-4xl">&</span> Lucas
+          <h1 className="font-serif text-6xl md:text-8xl mb-2 md:mb-4 drop-shadow-md" style={{ fontFamily: "'Playfair Display', serif" }}>
+            Rafaela <span className="text-4xl md:text-5xl">&</span> Lucas
           </h1>
-          <p className="text-sm md:text-base tracking-[0.2em] uppercase mt-8 mb-4 drop-shadow-sm font-light">
+          <p className="text-xs md:text-base tracking-[0.2em] uppercase mt-4 mb-4 drop-shadow-sm font-light leading-relaxed">
             Convidam para o seu casamento
           </p>
         </motion.div>
@@ -130,10 +130,10 @@ export default function Home() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 2, duration: 1.5, repeat: Infinity, repeatType: "reverse" }}
-          className="absolute bottom-10 z-20 text-white flex flex-col items-center opacity-80"
+          className="absolute bottom-8 z-20 text-white flex flex-col items-center opacity-80"
         >
           <span className="text-[10px] uppercase tracking-widest mb-3">Deslize</span>
-          <div className="w-[1px] h-16 bg-gradient-to-b from-white to-transparent"></div>
+          <div className="w-[1px] h-12 md:h-16 bg-gradient-to-b from-white to-transparent"></div>
         </motion.div>
       </section>
 
@@ -147,21 +147,21 @@ export default function Home() {
           className="text-center z-10 flex flex-col items-center w-full"
         >
           {/* Foto 2: Imagem do casal grande */}
-          <div className="mb-14 relative w-full xl:w-[80vw] max-w-4xl h-[50vh] md:h-[65vh] mt-4">
+          <div className="mb-10 md:mb-14 relative w-full xl:w-[80vw] max-w-4xl h-[40vh] md:h-[65vh] mt-4 z-10">
             <img src="/foto-2.jpg" alt="Momentos dos Noivos" className="w-full h-full object-cover rounded-3xl shadow-2xl border-4 border-white/80" />
           </div>
 
-          <p className={`${sageColor} text-sm tracking-[0.3em] uppercase mb-8`}>A realizar-se no dia</p>
+          <p className={`${sageColor} text-xs md:text-sm tracking-[0.3em] uppercase mb-4 md:mb-8`}>A realizar-se no dia</p>
 
-          <div className={`flex gap-6 justify-center items-center font-serif text-5xl md:text-7xl ${oliveColor} mb-8`}>
+          <div className={`flex gap-3 md:gap-6 justify-center items-center font-serif text-5xl md:text-7xl ${oliveColor} mb-6 md:mb-8`}>
             <div className="flex flex-col items-center">
               <span>12</span>
             </div>
-            <div className="text-stone-300 font-light text-4xl">/</div>
+            <div className="text-stone-300 font-light text-3xl md:text-4xl">/</div>
             <div className="flex flex-col items-center">
               <span>07</span>
             </div>
-            <div className="text-stone-300 font-light text-4xl">/</div>
+            <div className="text-stone-300 font-light text-3xl md:text-4xl">/</div>
             <div className="flex flex-col items-center">
               <span>2026</span>
             </div>
