@@ -9,8 +9,8 @@
     "confirmado": false
   },
   {
-    "token": "4c6cd80f",
-    "nome": "\"Maria Silva",
+    "token": "5cf38ce7",
+    "nome": "Acompanhante 1",
     "telefone": "81999990001",
     "grupoId": "9465c490",
     "isTitular": false,
@@ -18,8 +18,8 @@
     "confirmado": false
   },
   {
-    "token": "2e97f233",
-    "nome": "Pedro Silva\"",
+    "token": "bc74710b",
+    "nome": "Acompanhante 2",
     "telefone": "81999990001",
     "grupoId": "9465c490",
     "isTitular": false,
@@ -36,8 +36,8 @@
     "confirmado": false
   },
   {
-    "token": "df4520a5",
-    "nome": "Acomp. 1 (Ana Souza)",
+    "token": "74c0fd6c",
+    "nome": "Acompanhante 1",
     "telefone": "81988880002",
     "grupoId": "b3a4a2a1",
     "isTitular": false,

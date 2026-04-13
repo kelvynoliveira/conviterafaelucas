@@ -79,29 +79,22 @@ rows.forEach((line) => {
   individuals.push(titularObj);
 
   // 2. Processar Acompanhantes
-  let names = [];
-  if (acompRaw.includes(";")) {
-    names = acompRaw.split(";").map(n => n.trim()).filter(n => n);
-  } else {
-    const num = parseInt(acompRaw, 10) || 0;
-    for (let i = 1; i <= num; i++) {
-       names.push(`Acomp. ${i} (${titularNome})`);
-    }
-  }
-
-  names.forEach((name) => {
-    const key = `${name}|${titularNome}`;
+  const numAcomp = parseInt(acompRaw, 10) || 0;
+  for (let i = 1; i <= numAcomp; i++) {
+    const companionName = `Acompanhante ${i}`;
+    const key = `${companionName}|${titularNome}`;
     const token = tokenMap.get(key) || generateToken();
+
     individuals.push({
       token,
-      nome: name,
+      nome: companionName,
       telefone: telefone,
       grupoId: titularToken,
       isTitular: false,
       titularNome: titularNome,
       confirmado: existingList.find(e => e.token === token)?.confirmado ?? false
     });
-  });
+  }
 });
 
 // ── Escrita do JSON ──────────────────────────────────────────────────────────
@@ -114,12 +107,12 @@ const tableRows = titularList.map((g) => {
   const acompTotal = individuals.filter(i => i.grupoId === g.token && !i.isTitular).length;
   const link = `https://conviterafaelucas.vercel.app/?token=${g.token}`;
   const msg =
-    `Olá, ${g.nome}! 🌸\n` +
-    `Você está convidado(a) para o casamento de Rafaela & Lucas! 💍\n\n` +
+    `Olá, ${g.nome}! \n` +
+    `Você está convidado(a) para o casamento de Rafaela & Lucas! \n\n` +
     `Acesse seu convite personalizado:\n${link}\n\n` +
-    `Cada pessoa deve apresentar seu próprio QR Code na entrada do evento. 🎊`;
+    `Cada pessoa deve apresentar seu próprio QR Code na entrada do evento. `;
   const waUrl = `https://wa.me/55${g.telefone}?text=${encodeURIComponent(msg)}`;
-  
+
   return `
     <tr>
       <td>${g.nome}</td>
