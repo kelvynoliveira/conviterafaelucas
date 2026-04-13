@@ -106,12 +106,19 @@ const titularList = individuals.filter(g => g.isTitular);
 const tableRows = titularList.map((g) => {
   const acompTotal = individuals.filter(i => i.grupoId === g.token && !i.isTitular).length;
   const link = `https://conviterafaelucas.vercel.app/?token=${g.token}`;
+  
+  // Trata o telefone pra ficar consistente (só numero) e remove "55" se começar com 55 pra n duplicar
+  let phoneStr = g.telefone.replace(/\D/g, "");
+  if (phoneStr.startsWith("55") && phoneStr.length >= 12) {
+      phoneStr = phoneStr.substring(2);
+  }
+
   const msg =
     `Olá, ${g.nome}! \n` +
     `Você está convidado(a) para o casamento de Rafaela & Lucas! \n\n` +
     `Acesse seu convite personalizado:\n${link}\n\n` +
     `Cada pessoa deve apresentar seu próprio QR Code na entrada do evento. `;
-  const waUrl = `https://wa.me/55${g.telefone}?text=${encodeURIComponent(msg)}`;
+  const waUrl = `https://wa.me/55${phoneStr}?text=${encodeURIComponent(msg)}`;
 
   return `
     <tr>
